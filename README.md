@@ -33,7 +33,7 @@ Our North Star is **Qualified Moment Discoveries**: a finished search that shows
 1. **Acquire organisers** through ads, communities and AI search visibility (people asking ChatGPT or Gemini "what to do in Berlin").
 2. **Activate:** the organiser describes the moment; we return a collection in seconds.
 3. **Spread:** friends join through one link and vote. Each organiser brings 3–5 users at zero ad cost.
-4. **Convert:** the winning option links to a partner through a tracked click (`/go`), carrying our affiliate ID once approved.
+4. **Convert:** the winning option links to a partner through a tracked click (`/go`), carrying our affiliate ID once approved. Friends who joined by link can follow it too.
 5. **Learn:** consented events show which moods, budgets and partners convert, which improves ranking and partner choice.
 
 What we report and optimise, in order of business value:
@@ -48,13 +48,22 @@ What we report and optimise, in order of business value:
 
 Clicks are never reported as bookings; confirmed bookings only come from affiliate network reports.
 
+### Affiliate model: how the click earns
+
+Our revenue model is affiliate commission: a partner pays us when a click from WhereWeGo ends in a completed booking. **Status today: the code is ready, no partner is approved yet, so no click is monetised and revenue is zero.**
+
+- **What happens on a click:** `/go` always sends the user to the stored source page of the offer. If that page belongs to an approved partner, our partner ID and a random click ID are added to the link; every other link is left untouched.
+- **Who approves a partner:** a human, by adding the partner to `AFFILIATE_RULES` after the programme has accepted us and its terms are reviewed. Empty rules (the default) mean nothing is tagged. Details: [ADR-013](docs/adr/ADR-013-affiliate-links-at-redirect.md).
+- **What we promise:** commission never influences ranking, AI models never see or write links, and every monetised click is recorded as `monetised: true` with its click ID so bookings in the partner report can be matched back later.
+- **What is still missing:** approved partner IDs, an "we may earn a commission" notice in the frontend, the import of partner booking reports (`affiliate_conversion_confirmed`), and a partner catalogue with verified prices ([#5](https://github.com/chadha/WhereWeGo/issues/5)). Web-search results only earn when they happen to be partner pages.
+
 ## Where everything lives
 
 | What | Where | Notes |
 | --- | --- | --- |
 | Backend repo (FastAPI, docs, ADRs) | this repo | `main` is the truth; work on branches + PRs |
 | Architecture | [docs/architecture.md](docs/architecture.md) | AWS target + current slice (§9) |
-| Decisions | [docs/adr/](docs/adr) | ADR-001 to ADR-012 |
+| Decisions | [docs/adr/](docs/adr) | ADR-001 to ADR-013 |
 | Data contracts | [docs/data-contracts.md](docs/data-contracts.md), [contracts/schemas/](contracts/schemas) | Pydantic is the source of truth; schemas are generated |
 | Local demo guide | [docs/local-fullstack-demo.md](docs/local-fullstack-demo.md) | Run steps + 2-minute demo script |
 | Team onboarding | [docs/team/](docs/team) | Workstreams, issue map, Claude Code kickoff prompts |
@@ -80,6 +89,7 @@ We build production-grade from day one but deploy nothing that costs money witho
 | No live provider data or scraping without approval | Affiliate and API terms first | [009](docs/adr/ADR-009-no-live-provider-data-without-approval.md) |
 | No deployment without explicit approval; CI never deploys | Predictable spend | [010](docs/adr/ADR-010-no-deployment-without-explicit-approval.md) |
 | Tavily as a web-search provider (basic, max 5 results) | Real, sourced ideas before partner deals; price/availability stay "unknown" | [012](docs/adr/ADR-012-tavily-web-search-provider.md) |
+| Affiliate links are added only at the `/go` redirect, from human-approved rules | Revenue without letting AI or web results write links; off by default | [013](docs/adr/ADR-013-affiliate-links-at-redirect.md) |
 
 Product decisions: we optimise for decided trips and offer clicks over features; Vrbo/Expedia and GetYourGuide are the main booking links; Layla is pitched as a partner ("Layla plans for one, we bring the group").
 
@@ -279,7 +289,9 @@ The next step that unblocks everyone is the Lovable → GitHub sync; the rest ca
 - [ ] Chadha: connect Lovable to GitHub (`wherewego-web`) so the frontend runs locally ([#3](https://github.com/chadha/WhereWeGo/issues/3))
 - [ ] Chadha: share the Tavily key with the team privately (not in Slack, not in Git)
 - [ ] Decide whether the group trip flow moves onto our FastAPI backend later, or stays on Lovable Cloud
-- [ ] Apply to Travelpayouts, GetYourGuide Partner, Expedia Travel Creator Program; add IDs as secrets when approved
+- [ ] Apply to Travelpayouts, GetYourGuide Partner, Expedia Travel Creator Program; when approved, add each partner to `AFFILIATE_RULES` in `.env` using the link format from its dashboard
+- [ ] Frontend: show "we may earn a commission when you book" next to booking links before any partner is switched on
+- [ ] Decide how a friend's click can be counted: today it is redirected but not recorded, because only the organiser's session gave analytics consent
 - [ ] Agents A, B, C: start their first issue using [docs/team/agent-kickoff.md](docs/team/agent-kickoff.md)
 - [ ] Before any AWS step: cost estimate and approval per [infra/approval-gates.md](infra/approval-gates.md)
 
@@ -295,8 +307,8 @@ Interactive docs at http://localhost:8000/docs when the API runs.
 | `GET /v1/collections/{id}` | Fetch a generated collection |
 | `GET /v1/offers/{offer_id}?collection_id=` | Offer details |
 | `POST /v1/events` | Client events: `offer_viewed`, `offer_clicked`, `collection_viewed` |
-| `GET /v1/offers/{offer_id}/go?collection_id=&session_id=` | Records `offer_clicked` and redirects to the stored source URL only |
-| `GET /v1/health/live`, `/v1/health/ready` | Health (reports provider mode, never secrets) |
+| `GET /v1/offers/{offer_id}/go?collection_id=&session_id=` | Records `offer_clicked` (with `click_id` and `monetised`) and redirects to the stored source URL only, tagged for an approved affiliate partner when `AFFILIATE_RULES` matches. Works for any session holding the collection link; only the organiser's consented session is recorded |
+| `GET /v1/health/live`, `/v1/health/ready` | Health (reports provider mode and whether affiliate links are on, never secrets or IDs) |
 | `GET /v1/demo/summary` | Aggregate demo numbers (disable with `DEMO_SUMMARY_ENABLED=false`) |
 
 ```bash
@@ -309,7 +321,7 @@ python scripts/export_schemas.py   # regenerate contracts/schemas/*.json and ope
 
 ### What the discovery slice guarantees
 
-At most five `basic` Tavily results per discovery; results deduplicated; source URL, title, search timestamp and query kept as provenance; price and availability always `unknown` for web results (never parsed from page text); no affiliate or booking URLs invented; unsafe URLs dropped; bounded retries, timeouts, a circuit breaker and an honest fallback when search fails; consent-aware, idempotent events. Details: [docs/architecture.md §9](docs/architecture.md#9-current-implementation-local-vertical-slice).
+At most five `basic` Tavily results per discovery; results deduplicated; source URL, title, search timestamp and query kept as provenance; price and availability always `unknown` for web results (never parsed from page text); no affiliate or booking URLs invented (offers in API responses never carry one; tagging happens only at `/go`, only for hosts in `AFFILIATE_RULES`); unsafe URLs dropped; bounded retries, timeouts, a circuit breaker and an honest fallback when search fails; consent-aware, idempotent events. Details: [docs/architecture.md §9](docs/architecture.md#9-current-implementation-local-vertical-slice).
 
 ### Documentation map
 
@@ -318,7 +330,7 @@ At most five `basic` Tavily results per discovery; results deduplicated; source 
 | [docs/architecture.md](docs/architecture.md) | Target architecture on AWS, layers, service choices, agent workflow, data platform |
 | [docs/data-contracts.md](docs/data-contracts.md) | Versioned contracts: DiscoveryRequest, IntentResult, Offer, BehavioralEvent, MomentCollectionResponse |
 | [contracts/examples/](contracts/examples) | JSON examples of every contract |
-| [docs/adr/](docs/adr) | Architecture Decision Records ADR-001 to ADR-012 |
+| [docs/adr/](docs/adr) | Architecture Decision Records ADR-001 to ADR-013 |
 | [docs/security-and-privacy.md](docs/security-and-privacy.md) | Security architecture, threat model, GDPR data minimization |
 | [docs/evaluation.md](docs/evaluation.md) | How we prove the AI is reliable: intent, ranking, operations, business metrics |
 | [docs/growth-and-ai-discoverability.md](docs/growth-and-ai-discoverability.md) | SEO / AEO / GEO content structure and AI crawler readiness |
@@ -340,7 +352,8 @@ Python 3.12+, FastAPI, Pydantic, SQLAlchemy (+ Alembic, [#4](https://github.com/
 | Tavily | A web search service built for AI; we use its cheapest "basic" search, max 5 results |
 | Provenance | Where an offer came from: source page, title, search query and time |
 | Affiliate link | A partner link that pays us a commission when someone books |
-| Tracked click (`/go`) | Our redirect that records a click, then sends the user to the real source page |
+| Tracked click (`/go`) | Our redirect that records a click, then sends the user to the real source page, with our partner ID added when the page belongs to an approved partner |
+| Click ID | A random code added to each partner link so a booking in the partner's report can be matched to our click; it contains nothing about the person |
 | Consent-aware events | Analytics we only store when the user said yes; no names or emails |
 | ADR | Architecture Decision Record: a one-page note of a decision and why |
 | Medallion (Bronze/Silver/Gold) | Data layers: raw events, cleaned events, business-ready tables |
@@ -353,6 +366,7 @@ Updated with every change to the team onboarding doc; newest first.
 
 | Date | Change |
 | --- | --- |
+| 2026-11-21 | Affiliate business model: `/go` tags approved partner links from `AFFILIATE_RULES` (off by default), friends can follow shared links, ADR-013 added |
 | 2026-11-21 | README now mirrors the team onboarding doc, with the C4 diagrams as Mermaid; engineering reference kept at the end |
 | 2026-11-21 | Onboarding rewritten for mixed audiences: executive summary, reading guide by role, business model and growth, full C4 architecture (Levels 1–4), glossary, changelog |
 | 2026-11-21 | First version: context, links, decisions, architecture, local run, workflow, workstreams (issues #3–#12), rules, open questions |

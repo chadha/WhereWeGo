@@ -121,9 +121,16 @@ def test_redirect_and_events_reject_unknown_or_foreign_offers(settings: Settings
     assert (
         client.get(
             f"/v1/offers/{data['offers'][0]['offer_id']}/go",
-            params={"collection_id": col, "session_id": "other_session"},
+            params={"collection_id": "col_missing", "session_id": BODY["session_id"]},
         ).status_code
         == 404
+    )
+    assert (
+        client.get(
+            f"/v1/offers/{data['offers'][0]['offer_id']}/go",
+            params={"collection_id": col, "session_id": "bad session!"},
+        ).status_code
+        == 422
     )
     bad = {
         "event_id": "evt_x",

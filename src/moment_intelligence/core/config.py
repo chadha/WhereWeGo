@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import SecretStr
 
+from moment_intelligence.core.affiliate import AffiliateRule, parse_affiliate_rules
+
 ProviderMode = Literal["auto", "tavily", "mock"]
 GatewayMode = Literal["mock", "bedrock"]
 
@@ -48,6 +50,8 @@ class Settings:
     database_url: str = ""
     cors_origins: tuple[str, ...] = ()
     demo_summary_enabled: bool = True
+    # Approved affiliate partners (ADR-013). Empty means no link is ever tagged.
+    affiliate_rules: tuple[AffiliateRule, ...] = ()
 
     @property
     def use_tavily(self) -> bool:
@@ -83,4 +87,5 @@ def load_settings() -> Settings:
             if o.strip()
         ),
         demo_summary_enabled=os.environ.get("DEMO_SUMMARY_ENABLED", "true").lower() == "true",
+        affiliate_rules=parse_affiliate_rules(os.environ.get("AFFILIATE_RULES")),
     )

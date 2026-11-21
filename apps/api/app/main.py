@@ -6,6 +6,7 @@ Run:  uvicorn app.main:app --app-dir apps/api --reload
 from __future__ import annotations
 
 import logging
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -21,10 +22,12 @@ from moment_intelligence.application.collection_store import (
 )
 from moment_intelligence.application.demo_summary import DemoSummary, build_summary
 from moment_intelligence.application.discovery import DiscoveryService
+from moment_intelligence.core.affiliate import build_affiliate_url
 from moment_intelligence.core.config import Settings, load_settings
 from moment_intelligence.core.rate_limit import RateLimiter
 from moment_intelligence.domain.contracts import (
     ClientEventRequest,
+    Consent,
     DiscoveryRequest,
     MomentCollectionResponse,
     Offer,
@@ -129,6 +132,7 @@ def create_app(container: Container | None = None) -> FastAPI:
             "provider_kind": cfg.kind,
             "model_gateway": c.gateway.model_id,
             "live_search": cfg.kind == "web_search",
+            "affiliate_links": bool(c.settings.affiliate_rules),
         }
 
     @app.get("/v1/demo/summary", response_model=DemoSummary)
@@ -184,29 +188,47 @@ def create_app(container: Container | None = None) -> FastAPI:
 
     @app.get("/v1/offers/{offer_id}/go")
     async def go_to_offer(
-        offer_id: str, collection_id: str = Query(...), session_id: str = Query(...)
+        offer_id: str,
+        collection_id: str = Query(...),
+        session_id: str = Query(..., min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_\-\.]+$"),
     ) -> RedirectResponse:
-        """Record offer_clicked and redirect to the stored source URL (no open redirect)."""
+        """Record offer_clicked and redirect to the stored source URL (no open redirect).
+
+        The destination is always the stored source URL of an offer in the collection.
+        When that URL is on an approved affiliate partner (AFFILIATE_RULES, ADR-013) the
+        partner's tracking parameters are added; otherwise it is used unchanged.
+
+        Anyone holding the collection link may follow it, so friends who join a shared
+        collection can reach the offer. Only the session that created the collection gave
+        consent, so a click from any other session is redirected but never recorded.
+        """
         stored = c.store.get(collection_id)
-        offer = stored.offer(offer_id) if stored and stored.session_id == session_id else None
+        offer = stored.offer(offer_id) if stored else None
         if offer is None or stored is None:
             raise HTTPException(status_code=404, detail="offer_not_found")
         url = str(offer.source_url) if offer.source_url else None
         if not is_safe_public_url(url):
             raise HTTPException(status_code=404, detail="no_external_source")
+        assert url is not None
+        click_id = f"clk_{uuid.uuid4().hex[:20]}"
+        affiliate_url = build_affiliate_url(url, c.settings.affiliate_rules, click_id)
+        own_session = stored.session_id == session_id
         c.publisher.publish(
             make_event(
                 "offer_clicked",
                 session_id=session_id,
-                consent=stored.consent,
+                consent=stored.consent if own_session else Consent(),
                 request_id=stored.response.request_id,
                 collection_id=collection_id,
                 offer_id=offer_id,
-                properties={"via": "redirect"},
+                properties={
+                    "via": "redirect",
+                    "click_id": click_id,
+                    "monetised": affiliate_url is not None,
+                },
             )
         )
-        assert url is not None
-        return RedirectResponse(url=url, status_code=307)
+        return RedirectResponse(url=affiliate_url or url, status_code=307)
 
     return app
 
