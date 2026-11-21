@@ -11,10 +11,15 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from moment_intelligence.agents.model_gateway import ModelGateway, build_gateway
-from moment_intelligence.application.collection_store import CollectionStore
+from moment_intelligence.application.collection_store import (
+    CollectionRepository,
+    CollectionStore,
+)
+from moment_intelligence.application.demo_summary import DemoSummary, build_summary
 from moment_intelligence.application.discovery import DiscoveryService
 from moment_intelligence.core.config import Settings, load_settings
 from moment_intelligence.core.rate_limit import RateLimiter
@@ -28,6 +33,11 @@ from moment_intelligence.events.publisher import (
     EventPublisher,
     InMemoryEventPublisher,
     make_event,
+)
+from moment_intelligence.infrastructure.sql_store import (
+    SqlCollectionStore,
+    SqlEventPublisher,
+    make_engine,
 )
 from moment_intelligence.providers.base import ExperienceProvider
 from moment_intelligence.providers.mock import MockProvider
@@ -43,7 +53,7 @@ class Container:
     provider: ExperienceProvider
     gateway: ModelGateway
     publisher: EventPublisher
-    store: CollectionStore
+    store: CollectionRepository
     discovery: DiscoveryService
     limiter: RateLimiter
 
@@ -58,8 +68,14 @@ def build_container(
     if provider is None:
         provider = TavilyProvider(settings) if settings.use_tavily else MockProvider()
     gateway = gateway or build_gateway(settings)
-    publisher = publisher or InMemoryEventPublisher()
-    store = CollectionStore()
+    store: CollectionRepository
+    if settings.database_url:
+        engine = make_engine(settings.database_url)
+        store = SqlCollectionStore(engine)
+        publisher = publisher or SqlEventPublisher(engine)
+    else:
+        store = CollectionStore()
+        publisher = publisher or InMemoryEventPublisher()
     discovery = DiscoveryService(
         provider, gateway, publisher, store, timeout_seconds=settings.discovery_timeout_seconds
     )
@@ -86,6 +102,14 @@ def create_app(container: Container | None = None) -> FastAPI:
 
     app = FastAPI(title="Moment Intelligence API", version="0.1.0", lifespan=lifespan)
     app.state.container = c
+    if c.settings.cors_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(c.settings.cors_origins),
+            allow_methods=["GET", "POST"],
+            allow_headers=["Content-Type"],
+            allow_credentials=False,
+        )
 
     @app.exception_handler(Exception)
     async def _unhandled(_: Request, __: Exception) -> JSONResponse:
@@ -106,6 +130,13 @@ def create_app(container: Container | None = None) -> FastAPI:
             "model_gateway": c.gateway.model_id,
             "live_search": cfg.kind == "web_search",
         }
+
+    @app.get("/v1/demo/summary", response_model=DemoSummary)
+    async def demo_summary() -> DemoSummary:
+        """Aggregate local demo numbers. Disable with DEMO_SUMMARY_ENABLED=false outside demos."""
+        if not c.settings.demo_summary_enabled:
+            raise HTTPException(status_code=404, detail="not_found")
+        return build_summary(c.provider.configuration.provider_id, c.store, c.publisher)
 
     @app.post("/v1/discover", response_model=MomentCollectionResponse)
     async def discover(body: DiscoveryRequest, request: Request) -> MomentCollectionResponse:

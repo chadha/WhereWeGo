@@ -37,6 +37,10 @@ Architecture, decisions and a local discovery backend (FastAPI + Tavily adapter,
 | [infra/](infra) | AWS IaC layout (Terraform, plan-only), cost estimates, approval gates, resource inventory |
 | [AGENTS.md](AGENTS.md) | Master brief for coding agents (Codex, Claude Code) working in this repo |
 
+## Local full-stack demo
+
+Backend + Lovable frontend on your laptop, with a 2-minute demo script: see [docs/local-fullstack-demo.md](docs/local-fullstack-demo.md). Quick start: `./scripts/run_local.sh` (SQLite) or `docker compose up --build` (PostgreSQL).
+
 ## Run the backend locally
 
 The first vertical slice is a FastAPI service with `POST /v1/discover`, backed by Tavily web search through a dedicated provider adapter. Without a Tavily key it uses a clearly labelled demo catalogue. It needs no AWS resources.
@@ -70,6 +74,7 @@ Interactive API docs: http://localhost:8000/docs
 | `POST /v1/events` | Client events: `offer_viewed`, `offer_clicked`, `collection_viewed` |
 | `GET /v1/offers/{offer_id}/go?collection_id=&session_id=` | Records `offer_clicked` and redirects to the stored source URL only |
 | `GET /v1/health/live`, `/v1/health/ready` | Health (reports provider mode, never secrets) |
+| `GET /v1/demo/summary` | Aggregate demo numbers (disable with `DEMO_SUMMARY_ENABLED=false`) |
 
 Checks (the same ones CI runs, with no deploy step):
 

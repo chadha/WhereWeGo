@@ -14,6 +14,11 @@ from pydantic import SecretStr
 ProviderMode = Literal["auto", "tavily", "mock"]
 GatewayMode = Literal["mock", "bedrock"]
 
+# Local frontends (Lovable/Vite dev servers). Override with CORS_ORIGINS.
+DEFAULT_CORS_ORIGINS = (
+    "http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173"
+)
+
 # Hard upper bound required by the product: never more than five search results.
 MAX_SEARCH_RESULTS = 5
 
@@ -40,6 +45,9 @@ class Settings:
     model_gateway: GatewayMode
     bedrock_enabled: bool
     rate_limit_per_minute: int
+    database_url: str = ""
+    cors_origins: tuple[str, ...] = ()
+    demo_summary_enabled: bool = True
 
     @property
     def use_tavily(self) -> bool:
@@ -68,4 +76,11 @@ def load_settings() -> Settings:
         model_gateway=gateway,  # type: ignore[arg-type]
         bedrock_enabled=os.environ.get("BEDROCK_ENABLED", "false").lower() == "true",
         rate_limit_per_minute=_env_int("DISCOVER_RATE_LIMIT_PER_MINUTE", 30),
+        database_url=os.environ.get("DATABASE_URL", "").strip(),
+        cors_origins=tuple(
+            o.strip()
+            for o in os.environ.get("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",")
+            if o.strip()
+        ),
+        demo_summary_enabled=os.environ.get("DEMO_SUMMARY_ENABLED", "true").lower() == "true",
     )
