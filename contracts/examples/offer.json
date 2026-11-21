@@ -1,0 +1,17 @@
+{
+  "offer_id": "offer_123",
+  "provider_id": "fever",
+  "title": "Creative evening experience",
+  "description": "A shared creative activity",
+  "category": "workshop",
+  "location": { "city": "Berlin", "district": "Mitte", "latitude": null, "longitude": null },
+  "price": { "amount": 45, "currency": "EUR", "price_scope": "per_person" },
+  "suitable_for": ["partner", "friends"],
+  "source_url": null,
+  "affiliate_url": null,
+  "availability_status": "unknown",
+  "last_verified_at": null,
+  "data_source": "demo_catalogue",
+  "is_illustrative": true,
+  "schema_version": "1.0"
+}

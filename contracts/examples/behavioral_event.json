@@ -1,0 +1,18 @@
+{
+  "event_id": "evt_01J...",
+  "event_type": "collection_viewed",
+  "occurred_at": "2026-11-19T15:30:00Z",
+  "session_id": "sess_random_id",
+  "request_id": "req_01J...",
+  "collection_id": "col_123",
+  "offer_id": null,
+  "source": {
+    "channel": "organic_search",
+    "utm_source": null,
+    "utm_medium": null,
+    "utm_campaign": null,
+    "referrer_domain": "example.com"
+  },
+  "consent_state": { "analytics": true, "marketing": false },
+  "schema_version": "1.0"
+}

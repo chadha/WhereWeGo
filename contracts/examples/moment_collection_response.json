@@ -1,0 +1,12 @@
+{
+  "collection_id": "col_123",
+  "title": "A night to remember",
+  "description": "A shared experience built around surprise and connection.",
+  "currency": "EUR",
+  "estimated_total": 90,
+  "price_status": "illustrative",
+  "offers": [],
+  "explanation": { "matched_preferences": ["surprise", "connection", "within_budget"] },
+  "availability_status": "not_verified",
+  "generated_at": "2026-11-19T15:30:00Z"
+}

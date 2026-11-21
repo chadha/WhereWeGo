@@ -1,0 +1,13 @@
+{
+  "request_id": "req_01J...",
+  "session_id": "sess_random_id",
+  "locale": "en-DE",
+  "city": "Berlin",
+  "companion": "partner",
+  "desired_feelings": ["surprised", "connected"],
+  "occasion": "date",
+  "date_window": { "start": "2026-11-21", "end": "2026-11-22", "flexible": true },
+  "budget": { "amount": 100, "currency": "EUR", "scope": "total" },
+  "constraints": { "indoor_preferred": false, "max_travel_minutes": 45 },
+  "consent": { "analytics": false, "marketing": false }
+}

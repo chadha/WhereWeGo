@@ -1,0 +1,13 @@
+{
+  "intent_id": "int_01J...",
+  "companion": "partner",
+  "occasion": "date",
+  "desired_feelings": ["surprised", "connected"],
+  "activity_categories": ["food_experience", "creative_workshop", "adventure"],
+  "budget_max": 100,
+  "currency": "EUR",
+  "date_window": { "start": "2026-11-21", "end": "2026-11-22" },
+  "confidence": 0.93,
+  "missing_information": [],
+  "schema_version": "1.0"
+}

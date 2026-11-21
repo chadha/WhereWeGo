@@ -1,0 +1,56 @@
+# Planned AWS resources. Nothing here is deployed.
+# Every resource needs an owner, a budget guardrail and an approval record before creation.
+defaults:
+  deployed: false
+  requires_approval: true
+  tags: [project=wherewego, env=<env>, cost_owner=<name>]
+
+resources:
+  - name: web-hosting
+    services: [Amazon S3, Amazon CloudFront, AWS Certificate Manager]
+    purpose: Frontend and prerendered SEO pages
+    phase: 5
+  - name: edge-protection
+    services: [AWS WAF]
+    purpose: Rate limiting and abuse protection
+    phase: 5
+  - name: api
+    services: [Amazon ECS on AWS Fargate, Application Load Balancer, Amazon ECR]
+    purpose: FastAPI + Python orchestrator container
+    phase: 5
+  - name: operational-db
+    services: [Amazon RDS for PostgreSQL]
+    purpose: Providers, offers, collections, configuration
+    phase: 5
+  - name: event-buffer
+    services: [Amazon SQS (+ dead-letter queue)]
+    purpose: Asynchronous behavioral event ingestion
+    phase: 6
+  - name: data-lake
+    services: [Amazon S3]
+    purpose: raw / quarantine / checkpoints for Databricks
+    phase: 7
+  - name: lakehouse
+    services: [Databricks on AWS, Unity Catalog, MLflow]
+    purpose: Bronze/Silver/Gold/ML; jobs disabled by default
+    phase: 7
+  - name: models
+    services: [Amazon Bedrock]
+    purpose: Intent Agent and Moment Curator via model gateway
+    phase: 3 (local mock) / 6 (live)
+  - name: secrets
+    services: [AWS Secrets Manager, AWS KMS]
+    purpose: Provider, affiliate, model and database secrets
+    phase: 5
+  - name: identity
+    services: [AWS IAM roles, IAM Identity Center]
+    purpose: Least-privilege service and admin access
+    phase: 5
+  - name: observability
+    services: [Amazon CloudWatch, AWS X-Ray, AWS Distro for OpenTelemetry]
+    purpose: Logs, traces, metrics, cost per discovery
+    phase: 5
+  - name: cost-guardrails
+    services: [AWS Budgets, AWS Cost Anomaly Detection]
+    purpose: Budget alerts per environment and per owner
+    phase: 5 (create first, before anything billable)
