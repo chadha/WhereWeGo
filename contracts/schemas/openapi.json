@@ -56,6 +56,25 @@
         }
       }
     },
+    "/v1/demo/summary": {
+      "get": {
+        "summary": "Demo Summary",
+        "description": "Aggregate local demo numbers. Disable with DEMO_SUMMARY_ENABLED=false outside demos.",
+        "operationId": "demo_summary_v1_demo_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/discover": {
       "post": {
         "summary": "Discover",
@@ -456,6 +475,88 @@
           "end"
         ],
         "title": "DateWindow"
+      },
+      "DemoSummary": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "discoveries": {
+            "type": "integer",
+            "title": "Discoveries"
+          },
+          "ok": {
+            "type": "integer",
+            "title": "Ok"
+          },
+          "no_results": {
+            "type": "integer",
+            "title": "No Results"
+          },
+          "degraded": {
+            "type": "integer",
+            "title": "Degraded"
+          },
+          "offers_shown": {
+            "type": "integer",
+            "title": "Offers Shown"
+          },
+          "offer_views": {
+            "type": "integer",
+            "title": "Offer Views"
+          },
+          "offer_clicks": {
+            "type": "integer",
+            "title": "Offer Clicks"
+          },
+          "click_through_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Click Through Rate"
+          },
+          "events_recorded": {
+            "type": "integer",
+            "title": "Events Recorded"
+          },
+          "events_dropped_without_consent": {
+            "type": "integer",
+            "title": "Events Dropped Without Consent"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "provider",
+          "discoveries",
+          "ok",
+          "no_results",
+          "degraded",
+          "offers_shown",
+          "offer_views",
+          "offer_clicks",
+          "click_through_rate",
+          "events_recorded",
+          "events_dropped_without_consent",
+          "note",
+          "generated_at"
+        ],
+        "title": "DemoSummary"
       },
       "DiscoveryRequest": {
         "properties": {

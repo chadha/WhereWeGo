@@ -25,6 +25,14 @@ class EventPublisher(Protocol):
         ...
 
 
+class EventStats(Protocol):
+    """Optional read side used by the local demo summary."""
+
+    dropped_without_consent: int
+
+    def count_by_type(self) -> dict[str, int]: ...
+
+
 class InMemoryEventPublisher:
     def __init__(self, max_events: int = 10_000) -> None:
         self._events: OrderedDict[str, BehavioralEvent] = OrderedDict()
@@ -45,6 +53,12 @@ class InMemoryEventPublisher:
     @property
     def events(self) -> list[BehavioralEvent]:
         return list(self._events.values())
+
+    def count_by_type(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for e in self._events.values():
+            counts[e.event_type] = counts.get(e.event_type, 0) + 1
+        return counts
 
     def types(self) -> list[str]:
         return [e.event_type for e in self._events.values()]

@@ -1,0 +1,35 @@
+# Local full-stack backend: API + PostgreSQL. Runs only on your machine.
+# Usage: TAVILY_API_KEY=tvly-... docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wherewego
+      POSTGRES_USER: wherewego
+      POSTGRES_PASSWORD: wherewego-local-only
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wherewego -d wherewego"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://wherewego:wherewego-local-only@db:5432/wherewego
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      PROVIDER_MODE: ${PROVIDER_MODE:-auto}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080,http://localhost:5173,http://127.0.0.1:5173}
+      MODEL_GATEWAY: mock
+      BEDROCK_ENABLED: "false"
+    ports:
+      - "127.0.0.1:8000:8000"
+
+volumes:
+  pgdata:

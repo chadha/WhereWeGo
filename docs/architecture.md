@@ -345,11 +345,11 @@ flowchart TD
     RK --> CU[Moment Curator<br/>template copy, optional model copy via gateway]
     CU -. disabled by default .-> GW[ModelGateway<br/>Mock now, Bedrock later]
     CU --> OV[Output validation<br/>no hallucinated offers, prices, links]
-    OV --> ST[(In-memory collection store<br/>PostgreSQL later)]
+    OV --> ST[(Collection store<br/>memory, SQLite or PostgreSQL)]
     OV --> RESP[MomentCollectionResponse]
     WF --> EV[Consent-aware events<br/>discovery_started / completed / no_results_found]
     API -->|POST /v1/events, GET /offers/:id/go| EV2[offer_viewed / offer_clicked]
-    EV --> PUB[InMemoryEventPublisher<br/>SQS adapter later]
+    EV --> PUB[Event publisher<br/>memory or SQL, SQS adapter later]
     EV2 --> PUB
     TP -. on failure .-> FB[Safe fallback<br/>status=degraded, no offers]
     FB --> RESP
@@ -382,5 +382,8 @@ flowchart TD
 - **Secrets.** `TAVILY_API_KEY` is read from the environment, held as `SecretStr`, sent only in the `Authorization` header, and never logged or returned (tested).
 - **Events.** Recorded only with `consent.analytics=true`; idempotent by `event_id`; clicks are never treated as bookings.
 
+### Persistence and local demo
+`DATABASE_URL` selects the storage adapter: empty = bounded in-memory (tests), `sqlite:///...` (local script), `postgresql+psycopg://...` (docker compose, later RDS). Collections and consented events are stored by SQLAlchemy (`infrastructure/sql_store.py`); tables are created with `create_all` for local use and move to Alembic migrations before any shared environment. CORS allows only the configured local frontend origins. `GET /v1/demo/summary` returns aggregate numbers for the demo. See [local-fullstack-demo.md](local-fullstack-demo.md).
+
 ### Not in this slice (next phases)
-PostgreSQL persistence, SQS wiring, the Intent Agent on Bedrock, real provider catalogue adapters, admin authentication, and the Databricks pipelines.
+Alembic migrations, SQS wiring, the Intent Agent on Bedrock, real provider catalogue adapters, admin authentication, and the Databricks pipelines.

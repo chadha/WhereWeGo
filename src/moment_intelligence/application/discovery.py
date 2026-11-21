@@ -17,7 +17,10 @@ from datetime import UTC, datetime
 
 from moment_intelligence.agents.curator import curate
 from moment_intelligence.agents.model_gateway import ModelGateway
-from moment_intelligence.application.collection_store import CollectionStore, StoredCollection
+from moment_intelligence.application.collection_store import (
+    CollectionRepository,
+    StoredCollection,
+)
 from moment_intelligence.application.query_builder import build_search_query
 from moment_intelligence.core.resilience import (
     CircuitOpenError,
@@ -68,7 +71,7 @@ class DiscoveryService:
         provider: ExperienceProvider,
         gateway: ModelGateway,
         publisher: EventPublisher,
-        store: CollectionStore,
+        store: CollectionRepository,
         timeout_seconds: float = 20.0,
     ) -> None:
         self.provider = provider
