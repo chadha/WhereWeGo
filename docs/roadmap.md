@@ -33,6 +33,7 @@ We start with the engineering foundation, not with creating AWS resources.
 
 - [ ] Inspect the existing Lovable/GitHub frontend and repository
 - [x] Create architecture.md and ADR-001 to ADR-012
+- [x] Team onboarding: CLAUDE.md, docs/team/, workstream issues #3-#12
 - [x] Define Pydantic contracts and JSON Schemas
 - [x] Create FastAPI skeleton and health endpoints
 - [x] Implement demo provider adapter and normalized Offer model (+ Tavily web-search adapter)

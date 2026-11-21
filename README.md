@@ -35,7 +35,8 @@ Architecture, decisions and a local discovery backend (FastAPI + Tavily adapter,
 | [docs/growth-and-ai-discoverability.md](docs/growth-and-ai-discoverability.md) | SEO / AEO / GEO content structure and AI crawler readiness |
 | [docs/roadmap.md](docs/roadmap.md) | Phases, acceptance gates and Sprint 1 checklist |
 | [infra/](infra) | AWS IaC layout (Terraform, plan-only), cost estimates, approval gates, resource inventory |
-| [AGENTS.md](AGENTS.md) | Master brief for coding agents (Codex, Claude Code) working in this repo |
+| [AGENTS.md](AGENTS.md), [CLAUDE.md](CLAUDE.md) | Brief and team rules for coding agents (Codex, Claude Code) |
+| [docs/team/](docs/team) | Team onboarding, workstreams, Claude Code kickoff prompts |
 
 ## Local full-stack demo
 
