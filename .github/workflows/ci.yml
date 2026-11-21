@@ -1,0 +1,23 @@
+# Tests and static analysis only. There is deliberately no deploy job (ADR-010).
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      PROVIDER_MODE: mock  # never call Tavily or AWS from CI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy
+      - run: pytest -q

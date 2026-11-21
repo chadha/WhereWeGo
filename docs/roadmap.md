@@ -28,17 +28,17 @@ Do not give a coding agent one prompt that says "build the whole platform". Ever
 
 At the end of every phase: run tests, report changed files, report design decisions, report unresolved risks, update documentation, and ask before any step that can incur cloud costs.
 
-## Sprint 1 checklist (0/9)
+## Sprint 1 checklist (6/9)
 We start with the engineering foundation, not with creating AWS resources.
 
 - [ ] Inspect the existing Lovable/GitHub frontend and repository
-- [x] Create architecture.md and ADR-001 to ADR-011 *(this commit)*
-- [ ] Define Pydantic contracts and JSON Schemas
-- [ ] Create FastAPI skeleton and health endpoints
-- [ ] Implement demo provider adapter and normalized Offer model
-- [ ] Implement deterministic eligibility and ranking
+- [x] Create architecture.md and ADR-001 to ADR-012
+- [x] Define Pydantic contracts and JSON Schemas
+- [x] Create FastAPI skeleton and health endpoints
+- [x] Implement demo provider adapter and normalized Offer model (+ Tavily web-search adapter)
+- [x] Implement deterministic eligibility and ranking
 - [ ] Create synthetic discovery evaluation dataset
-- [ ] Create local event schema and event publisher mock
+- [x] Create local event schema and event publisher mock
 - [ ] Write security threat model and cloud cost approval gates *(first draft in this commit)*
 
 ## What makes this a strong Senior AI Architect project

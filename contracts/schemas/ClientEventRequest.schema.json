@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "EventSource": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "utm_source": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Utm Source"
+        },
+        "utm_medium": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Utm Medium"
+        },
+        "utm_campaign": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Utm Campaign"
+        },
+        "referrer_domain": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Referrer Domain"
+        }
+      },
+      "title": "EventSource",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Events the frontend may send. Server-side events are emitted by the API itself.",
+  "properties": {
+    "event_id": {
+      "maxLength": 64,
+      "minLength": 3,
+      "pattern": "^[A-Za-z0-9_\\-\\.]+$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "offer_viewed",
+        "offer_clicked",
+        "collection_viewed"
+      ],
+      "title": "Event Type",
+      "type": "string"
+    },
+    "session_id": {
+      "maxLength": 64,
+      "minLength": 3,
+      "pattern": "^[A-Za-z0-9_\\-\\.]+$",
+      "title": "Session Id",
+      "type": "string"
+    },
+    "collection_id": {
+      "title": "Collection Id",
+      "type": "string"
+    },
+    "offer_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Offer Id"
+    },
+    "source": {
+      "$ref": "#/$defs/EventSource"
+    }
+  },
+  "required": [
+    "event_id",
+    "event_type",
+    "session_id",
+    "collection_id"
+  ],
+  "title": "ClientEventRequest",
+  "type": "object"
+}

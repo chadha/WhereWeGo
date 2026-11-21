@@ -1,0 +1,300 @@
+{
+  "$defs": {
+    "Location": {
+      "additionalProperties": false,
+      "properties": {
+        "city": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "City"
+        },
+        "district": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "District"
+        },
+        "latitude": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latitude"
+        },
+        "longitude": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Longitude"
+        }
+      },
+      "title": "Location",
+      "type": "object"
+    },
+    "Price": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amount"
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "const": "EUR",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Currency"
+        },
+        "price_scope": {
+          "default": "unknown",
+          "enum": [
+            "per_person",
+            "total",
+            "unknown"
+          ],
+          "title": "Price Scope",
+          "type": "string"
+        }
+      },
+      "title": "Price",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Where an offer came from and how we found it.",
+      "properties": {
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "title": "Retrieved At",
+          "type": "string"
+        },
+        "search_query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Query"
+        },
+        "search_depth": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Search Depth"
+        },
+        "relevance_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relevance Score"
+        }
+      },
+      "required": [
+        "provider",
+        "retrieved_at"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "offer_id": {
+      "title": "Offer Id",
+      "type": "string"
+    },
+    "provider_id": {
+      "title": "Provider Id",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "category": {
+      "default": "unknown",
+      "title": "Category",
+      "type": "string"
+    },
+    "location": {
+      "$ref": "#/$defs/Location"
+    },
+    "price": {
+      "$ref": "#/$defs/Price"
+    },
+    "suitable_for": {
+      "items": {
+        "enum": [
+          "partner",
+          "family",
+          "friends",
+          "solo",
+          "colleagues"
+        ],
+        "type": "string"
+      },
+      "title": "Suitable For",
+      "type": "array"
+    },
+    "source_url": {
+      "anyOf": [
+        {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Url"
+    },
+    "source_title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Title"
+    },
+    "affiliate_url": {
+      "anyOf": [
+        {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Affiliate Url"
+    },
+    "availability_status": {
+      "default": "unknown",
+      "enum": [
+        "available",
+        "unavailable",
+        "unknown"
+      ],
+      "title": "Availability Status",
+      "type": "string"
+    },
+    "last_verified_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Verified At"
+    },
+    "data_source": {
+      "enum": [
+        "tavily_search",
+        "demo_catalogue",
+        "provider_api"
+      ],
+      "title": "Data Source",
+      "type": "string"
+    },
+    "is_illustrative": {
+      "title": "Is Illustrative",
+      "type": "boolean"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "offer_id",
+    "provider_id",
+    "title",
+    "description",
+    "data_source",
+    "is_illustrative",
+    "provenance"
+  ],
+  "title": "Offer",
+  "type": "object"
+}

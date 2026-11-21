@@ -1,0 +1,209 @@
+{
+  "$defs": {
+    "Budget": {
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "exclusiveMinimum": 0,
+          "maximum": 10000,
+          "title": "Amount",
+          "type": "number"
+        },
+        "currency": {
+          "const": "EUR",
+          "default": "EUR",
+          "title": "Currency",
+          "type": "string"
+        },
+        "scope": {
+          "default": "total",
+          "enum": [
+            "per_person",
+            "total"
+          ],
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount"
+      ],
+      "title": "Budget",
+      "type": "object"
+    },
+    "Consent": {
+      "additionalProperties": false,
+      "properties": {
+        "analytics": {
+          "default": false,
+          "title": "Analytics",
+          "type": "boolean"
+        },
+        "marketing": {
+          "default": false,
+          "title": "Marketing",
+          "type": "boolean"
+        }
+      },
+      "title": "Consent",
+      "type": "object"
+    },
+    "Constraints": {
+      "additionalProperties": false,
+      "properties": {
+        "indoor_preferred": {
+          "default": false,
+          "title": "Indoor Preferred",
+          "type": "boolean"
+        },
+        "max_travel_minutes": {
+          "anyOf": [
+            {
+              "maximum": 240,
+              "minimum": 5,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Travel Minutes"
+        }
+      },
+      "title": "Constraints",
+      "type": "object"
+    },
+    "DateWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "format": "date",
+          "title": "Start",
+          "type": "string"
+        },
+        "end": {
+          "format": "date",
+          "title": "End",
+          "type": "string"
+        },
+        "flexible": {
+          "default": false,
+          "title": "Flexible",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "DateWindow",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "request_id": {
+      "maxLength": 64,
+      "minLength": 3,
+      "pattern": "^[A-Za-z0-9_\\-\\.]+$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "session_id": {
+      "maxLength": 64,
+      "minLength": 3,
+      "pattern": "^[A-Za-z0-9_\\-\\.]+$",
+      "title": "Session Id",
+      "type": "string"
+    },
+    "locale": {
+      "default": "en-DE",
+      "pattern": "^[a-z]{2}-[A-Z]{2}$",
+      "title": "Locale",
+      "type": "string"
+    },
+    "city": {
+      "maxLength": 60,
+      "minLength": 2,
+      "pattern": "^[\\w .'\\-]+$",
+      "title": "City",
+      "type": "string"
+    },
+    "companion": {
+      "enum": [
+        "partner",
+        "family",
+        "friends",
+        "solo",
+        "colleagues"
+      ],
+      "title": "Companion",
+      "type": "string"
+    },
+    "desired_feelings": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 5,
+      "title": "Desired Feelings",
+      "type": "array"
+    },
+    "occasion": {
+      "anyOf": [
+        {
+          "maxLength": 40,
+          "pattern": "^[\\w .'\\-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Occasion"
+    },
+    "date_window": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DateWindow"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "budget": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Budget"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "constraints": {
+      "$ref": "#/$defs/Constraints"
+    },
+    "consent": {
+      "$ref": "#/$defs/Consent"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "session_id",
+    "city",
+    "companion"
+  ],
+  "title": "DiscoveryRequest",
+  "type": "object"
+}

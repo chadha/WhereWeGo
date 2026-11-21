@@ -1,0 +1,204 @@
+{
+  "$defs": {
+    "Consent": {
+      "additionalProperties": false,
+      "properties": {
+        "analytics": {
+          "default": false,
+          "title": "Analytics",
+          "type": "boolean"
+        },
+        "marketing": {
+          "default": false,
+          "title": "Marketing",
+          "type": "boolean"
+        }
+      },
+      "title": "Consent",
+      "type": "object"
+    },
+    "EventSource": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "utm_source": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Utm Source"
+        },
+        "utm_medium": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Utm Medium"
+        },
+        "utm_campaign": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Utm Campaign"
+        },
+        "referrer_domain": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Referrer Domain"
+        }
+      },
+      "title": "EventSource",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "maxLength": 64,
+      "minLength": 3,
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "discovery_started",
+        "preferences_submitted",
+        "discovery_completed",
+        "collection_viewed",
+        "offer_viewed",
+        "offer_clicked",
+        "no_results_found",
+        "affiliate_conversion_confirmed"
+      ],
+      "title": "Event Type",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "request_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Request Id"
+    },
+    "collection_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Collection Id"
+    },
+    "offer_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Offer Id"
+    },
+    "source": {
+      "$ref": "#/$defs/EventSource"
+    },
+    "consent_state": {
+      "$ref": "#/$defs/Consent"
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "title": "Properties"
+    },
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "event_type",
+    "occurred_at",
+    "session_id",
+    "consent_state"
+  ],
+  "title": "BehavioralEvent",
+  "type": "object"
+}
