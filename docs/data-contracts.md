@@ -22,6 +22,12 @@ Output of the Intent Agent. Example: [intent_result.json](../contracts/examples/
 ## 3. Offer
 One unified contract regardless of provider. Example: [offer.json](../contracts/examples/offer.json).
 
+Fields added in the implementation (still `schema_version` 1.0):
+- `source_title`: the page or listing title as the source shows it.
+- `provenance`: `provider`, `retrieved_at` (search timestamp), `search_query`, `search_depth`, `relevance_score`.
+- `price` may be fully unknown: `{"amount": null, "currency": null, "price_scope": "unknown"}`. A known amount always needs a currency and a scope.
+- `data_source` is `tavily_search`, `demo_catalogue` or `provider_api`.
+
 **Non-negotiable rules**
 - Never invent a price or availability.
 - `per_person` is never treated as `total`.
@@ -42,3 +48,7 @@ Never infer a confirmed booking from an outbound click. `affiliate_conversion_co
 Returned by the API. Example: [moment_collection_response.json](../contracts/examples/moment_collection_response.json).
 
 `price_status` and `availability_status` always state honestly whether values are illustrative, estimated or verified.
+
+Implementation adds: `request_id`, `status` (`ok`, `no_results`, `degraded`), `fallback_reason`, `data_source`, `excluded_offers`, and `explanation.ranking`, a per-offer `RankingExplanation` with the score breakdown.
+
+Generated JSON Schemas and the OpenAPI document live in [`contracts/schemas/`](../contracts/schemas); regenerate with `python scripts/export_schemas.py`.

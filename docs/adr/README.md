@@ -13,3 +13,4 @@
 | [ADR-009](ADR-009-no-live-provider-data-without-approval.md) | No live provider data without approval | Accepted |
 | [ADR-010](ADR-010-no-deployment-without-explicit-approval.md) | No deployment without explicit approval | Accepted |
 | [ADR-011](ADR-011-aws-as-cloud-platform.md) | AWS as the cloud platform | Accepted |
+| [ADR-012](ADR-012-tavily-web-search-provider.md) | Tavily as a web-search provider | Accepted |

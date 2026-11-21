@@ -322,3 +322,65 @@ wherewego/
 ├── infra/                   # Terraform (plan-only)
 └── docs/
 ```
+
+## 9. Current implementation: local vertical slice
+
+The first runnable slice implements the discovery path end to end on a laptop. It uses **Tavily Search** as a web-search provider (see [ADR-012](adr/ADR-012-tavily-web-search-provider.md)) and keeps every AWS service as an interface or a disabled adapter.
+
+```mermaid
+flowchart TD
+    C[Client / curl / frontend] -->|POST /v1/discover| API[FastAPI<br/>apps/api/app/main.py]
+    API --> RL[Rate limiter + Pydantic validation<br/>DiscoveryRequest v1.0]
+    RL --> WF[DiscoveryService<br/>application/discovery.py]
+    WF --> QB[Deterministic query builder<br/>intent + city + dates + companion + budget]
+    QB --> SEL{TAVILY_API_KEY set?}
+    SEL -- yes --> TP[TavilyProvider<br/>basic depth, max 5 results<br/>timeout + 2 retries + circuit breaker]
+    SEL -- no --> MP[MockProvider<br/>demo catalogue, is_illustrative=true]
+    TP -->|HTTPS + Bearer key| TAV[(Tavily Search API)]
+    TP --> NORM[Normalize to Offer<br/>price/availability = unknown<br/>provenance: url, title, query, retrieved_at]
+    MP --> NORM
+    NORM --> DD[Deduplicate<br/>canonical URL + title]
+    DD --> EL[Deterministic eligibility<br/>URL safety, budget, companion, freshness, affiliate]
+    EL --> RK[Deterministic ranking<br/>weighted score + explanation]
+    RK --> CU[Moment Curator<br/>template copy, optional model copy via gateway]
+    CU -. disabled by default .-> GW[ModelGateway<br/>Mock now, Bedrock later]
+    CU --> OV[Output validation<br/>no hallucinated offers, prices, links]
+    OV --> ST[(In-memory collection store<br/>PostgreSQL later)]
+    OV --> RESP[MomentCollectionResponse]
+    WF --> EV[Consent-aware events<br/>discovery_started / completed / no_results_found]
+    API -->|POST /v1/events, GET /offers/:id/go| EV2[offer_viewed / offer_clicked]
+    EV --> PUB[InMemoryEventPublisher<br/>SQS adapter later]
+    EV2 --> PUB
+    TP -. on failure .-> FB[Safe fallback<br/>status=degraded, no offers]
+    FB --> RESP
+```
+
+### Module map
+
+| Concern | Module |
+|---|---|
+| Contracts | `src/moment_intelligence/domain/contracts.py` |
+| Configuration (env, secrets as `SecretStr`) | `core/config.py` |
+| Retries, circuit breaker | `core/resilience.py` |
+| Rate limiting | `core/rate_limit.py` |
+| Provider interface, Tavily, demo | `providers/base.py`, `providers/tavily.py`, `providers/mock.py` |
+| URL safety, canonicalization, dedupe | `providers/normalization.py` |
+| Search planning | `application/query_builder.py` |
+| Workflow + output validation | `application/discovery.py` |
+| Eligibility, ranking | `ranking/eligibility.py`, `ranking/scoring.py` |
+| Curator, model gateway | `agents/curator.py`, `agents/model_gateway.py` |
+| Events | `events/publisher.py`, `infrastructure/sqs_publisher.py` (not wired) |
+| HTTP API | `apps/api/app/main.py` |
+
+### Rules enforced in code
+- **Five results, basic depth.** `search_depth="basic"` is always sent explicitly (Tavily can otherwise upgrade it), with `include_answer=false` and `include_raw_content=false`. The result list is also cut to five on our side.
+- **Unknown stays unknown.** A web page that says "from 70 EUR" or "available now" does not become a price or availability. Web offers carry `price_scope="unknown"`, `availability_status="unknown"`, `affiliate_url=null`, `last_verified_at=null`.
+- **Provenance.** Every offer keeps `source_url`, `source_title`, and `provenance.{provider, retrieved_at, search_query, search_depth, relevance_score}`.
+- **Eligibility before ranking.** Unknown price passes with a note; a known price over budget is excluded. Per-person prices are compared with a total budget only when the party size is certain (partner = 2, solo = 1).
+- **Safe outbound links.** Only public http(s) URLs; localhost, private and link-local IPs, credentials in URLs and non-http schemes are rejected. `/v1/offers/{id}/go` only redirects to a URL stored for that collection and session.
+- **Failures are honest.** Timeout, 429/5xx (retried at most twice), 4xx (not retried), an open circuit or an unexpected bug all return `status="degraded"` with no offers, never invented ones.
+- **Secrets.** `TAVILY_API_KEY` is read from the environment, held as `SecretStr`, sent only in the `Authorization` header, and never logged or returned (tested).
+- **Events.** Recorded only with `consent.analytics=true`; idempotent by `event_id`; clicks are never treated as bookings.
+
+### Not in this slice (next phases)
+PostgreSQL persistence, SQS wiring, the Intent Agent on Bedrock, real provider catalogue adapters, admin authentication, and the Databricks pipelines.

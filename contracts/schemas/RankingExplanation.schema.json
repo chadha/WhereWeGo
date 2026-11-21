@@ -1,0 +1,51 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "offer_id": {
+      "title": "Offer Id",
+      "type": "string"
+    },
+    "score": {
+      "title": "Score",
+      "type": "number"
+    },
+    "intent_match": {
+      "title": "Intent Match",
+      "type": "number"
+    },
+    "budget_fit": {
+      "title": "Budget Fit",
+      "type": "number"
+    },
+    "date_fit": {
+      "title": "Date Fit",
+      "type": "number"
+    },
+    "companion_fit": {
+      "title": "Companion Fit",
+      "type": "number"
+    },
+    "source_confidence": {
+      "title": "Source Confidence",
+      "type": "number"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "offer_id",
+    "score",
+    "intent_match",
+    "budget_fit",
+    "date_fit",
+    "companion_fit",
+    "source_confidence"
+  ],
+  "title": "RankingExplanation",
+  "type": "object"
+}

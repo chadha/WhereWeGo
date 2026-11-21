@@ -8,3 +8,8 @@ node_modules/
 *.tfstate
 *.tfstate.*
 .DS_Store
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+!.env.example

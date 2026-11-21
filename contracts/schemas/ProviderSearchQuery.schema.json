@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "query": {
+      "maxLength": 400,
+      "minLength": 3,
+      "title": "Query",
+      "type": "string"
+    },
+    "city": {
+      "title": "City",
+      "type": "string"
+    },
+    "max_results": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Max Results",
+      "type": "integer"
+    },
+    "search_depth": {
+      "const": "basic",
+      "default": "basic",
+      "title": "Search Depth",
+      "type": "string"
+    }
+  },
+  "required": [
+    "query",
+    "city",
+    "max_results"
+  ],
+  "title": "ProviderSearchQuery",
+  "type": "object"
+}
